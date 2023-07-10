@@ -32,7 +32,6 @@ from .resources import *
 import os.path
 
 from qgis.core import Qgis, QgsMapLayer
-from qgis.gui import QgsVectorLayerProperties
 from PyQt5 import QtCore, QtGui
 import base64
 
@@ -179,7 +178,7 @@ class StyleLoadSave:
         
         self.add_action(
             icon_path,
-            text=self.tr(u'Style Load'),
+            text=self.tr(u'Load Default Style'),
             callback=self.load_Style,
             parent=self.iface.mainWindow())
 
@@ -193,7 +192,7 @@ class StyleLoadSave:
         
         self.add_action(
             icon_path,
-            text=self.tr(u'Style Save'),
+            text=self.tr(u'Save Default Style'),
             callback=self.save_Style,
             parent=self.iface.mainWindow())
 
@@ -232,30 +231,23 @@ class StyleLoadSave:
             
             
     def load_Style(self):
-        if self.iface.activeLayer() and self.iface.activeLayer().type(
-        ) == QgsMapLayer.VectorLayer and self.iface.activeLayer().isSpatial():
-            props = QgsVectorLayerProperties(
-                self.iface.mapCanvas(),
-                self.iface.messageBar(),
-                self.iface.activeLayer())
-            props.loadStyle()
+        layer = self.iface.activeLayer()
+        if layer and layer.isSpatial() and layer.type() in [QgsMapLayer.VectorLayer, QgsMapLayer.RasterLayer, QgsMapLayer.MeshLayer]:
+            layer.loadDefaultStyle()
+            layer.emitStyleChanged()
+            layer.triggerRepaint()
         else:
             self.iface.messageBar().pushMessage(
                 "Error:",
-                "Missing or Not Vector Layer",
+                "Missing or Not Spatial Layer",
                 level=Qgis.Warning, duration=3)
 
 
     def save_Style(self):
-        if self.iface.activeLayer() and self.iface.activeLayer().type(
-        ) == QgsMapLayer.VectorLayer and self.iface.activeLayer().isSpatial():
-            props = QgsVectorLayerProperties(
-                self.iface.mapCanvas(),
-                self.iface.messageBar(),
-                self.iface.activeLayer())
-            props.saveStyleAs()
+        if self.iface.activeLayer() and self.iface.activeLayer().isSpatial():
+            self.iface.activeLayer().saveDefaultStyle()
         else:
             self.iface.messageBar().pushMessage(
                 "Error:",
-                "Missing or Not Vector Layer",
+                "Missing or Not Spatial Layer",
                 level=Qgis.Warning, duration=3)
